@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <title>Random Arabic Letter</title>
     <style>
         body, html {
@@ -53,6 +54,14 @@
             letterElement.style.color = darkPastelColors[letterObj.index % 8];
         }
 
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
         displayNewLetter();
 
         document.addEventListener('touchstart', e => {
@@ -69,6 +78,8 @@
                 displayNewLetter();
             }
         }
+
+        document.getElementById('letter').addEventListener('dblclick', triggerConfetti);
     </script>
 </body>
 </html>
