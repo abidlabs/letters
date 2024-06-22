@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Arabic Letter</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #letter {
+            font-size: 80vmin;
+        }
+    </style>
+</head>
+<body>
+    <div id="letter"></div>
+
+    <script>
+        const arabicLetters = 'أبتثجحخدذرزسشصضطظعغفقكلمنهوي';
+        const darkPastelColors = [
+            '#CF6A7C', // Dark Pastel Pink
+            '#CF9967', // Dark Pastel Orange
+            '#CFCF67', // Dark Pastel Yellow
+            '#67CF8F', // Dark Pastel Green
+            '#67A2CF', // Dark Pastel Blue
+            '#A367CF', // Dark Pastel Purple
+            '#CF67C0', // Dark Pastel Magenta
+            '#8F9FC7'  // Dark Pastel Periwinkle
+        ];
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function getRandomArabicLetter() {
+            const randomIndex = Math.floor(Math.random() * arabicLetters.length);
+            return {
+                letter: arabicLetters[randomIndex],
+                index: randomIndex
+            };
+        }
+
+        function displayNewLetter() {
+            const letterObj = getRandomArabicLetter();
+            const letterElement = document.getElementById('letter');
+            letterElement.textContent = letterObj.letter;
+            letterElement.style.color = darkPastelColors[letterObj.index % 8];
+        }
+
+        displayNewLetter();
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchStartX - touchEndX > 50 || touchEndX - touchStartX > 50) {
+                displayNewLetter();
+            }
+        }
+    </script>
+</body>
+</html>
