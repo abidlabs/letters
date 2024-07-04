@@ -19,10 +19,22 @@
         #letter {
             font-size: 80vmin;
         }
+        
+        #speaker {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 5vmin;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
     <div id="letter"></div>
+    <div id="speaker">🔊</div>
 
     <script>
         const arabicLetters = 'أبتثجحخدذرزسشصضطظعغفقكلمنهوي';
@@ -36,8 +48,10 @@
             '#CF67C0', // Dark Pastel Magenta
             '#8F9FC7'  // Dark Pastel Periwinkle
         ];
+        const audio = new Audio();
         let touchStartX = 0;
         let touchEndX = 0;
+        let currentLetterIndex = -1;
 
         function getRandomArabicLetter() {
             const randomIndex = Math.floor(Math.random() * arabicLetters.length);
@@ -52,13 +66,25 @@
             const letterElement = document.getElementById('letter');
             letterElement.textContent = letterObj.letter;
             letterElement.style.color = darkPastelColors[letterObj.index % 8];
+            currentLetterIndex = letterObj.index;
         }
+
+        const shapes = ['square', 'circle', 'star'];
 
         function triggerConfetti() {
             confetti({
                 particleCount: 100,
                 spread: 70,
-                origin: { y: 0.6 }
+                origin: { y: 0.6 },
+                shapes: [shapes[Math.floor(Math.random() * shapes.length)]],
+            });
+        }
+
+        function playLetterSound() {
+            const soundFile = `nova/${currentLetterIndex}.mp3`;
+            audio.src = soundFile;
+            audio.play().catch(error => {
+                console.error('Error playing audio:', error);
             });
         }
 
@@ -80,6 +106,8 @@
         }
 
         document.getElementById('letter').addEventListener('dblclick', triggerConfetti);
+        const speakerElement = document.getElementById('speaker');
+        speakerElement.addEventListener('click', playLetterSound);        
     </script>
 </body>
 </html>
