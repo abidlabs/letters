@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <title>Random Arabic Letters</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #speaker {
+            width: 100%;
+            padding: 15px 0;
+            background-color: #67A2CF;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            font-size: 24px;
+            margin-bottom: 40px;
+        }
+        #letters-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            height: 70vh;
+        }
+        .letter {
+            font-size: 45vmin;
+            cursor: pointer;
+            padding: 10px 40px;
+        }
+        @media (orientation: portrait) {
+            #letters-container {
+                flex-direction: column;
+            }
+            .letter {
+                font-size: 55vmin;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="speaker">🔊 Play Sound</div>
+    <div id="letters-container">
+        <div id="letter1" class="letter"></div>
+        <div id="letter2" class="letter"></div>
+    </div>
+
+    <script>
+        const arabicLetters = 'أبتثجحخدذرزسشصضطظعغفقكلمنهوي';
+        const darkPastelColors = [
+            '#CF6A7C', '#CF9967', '#CFCF67', '#67CF8F', '#67A2CF', '#A367CF', '#CF67C0', '#8F9FC7'
+        ];
+        const audio = new Audio();
+        let correctLetterIndex = -1;
+
+        function getRandomArabicLetter() {
+            const randomIndex = Math.floor(Math.random() * arabicLetters.length);
+            return {
+                letter: arabicLetters[randomIndex],
+                index: randomIndex
+            };
+        }
+
+        function getRandomColor(excludeIndex) {
+            let colorIndex;
+            do {
+                colorIndex = Math.floor(Math.random() * darkPastelColors.length);
+            } while (colorIndex === excludeIndex);
+            return { color: darkPastelColors[colorIndex], index: colorIndex };
+        }
+
+        function displayNewLetters() {
+            const letter1Obj = getRandomArabicLetter();
+            let letter2Obj;
+            do {
+                letter2Obj = getRandomArabicLetter();
+            } while (letter1Obj.index === letter2Obj.index);
+
+            const letter1Element = document.getElementById('letter1');
+            const letter2Element = document.getElementById('letter2');
+
+            letter1Element.textContent = letter1Obj.letter;
+            letter2Element.textContent = letter2Obj.letter;
+
+            const color1 = getRandomColor();
+            const color2 = getRandomColor(color1.index);
+
+            letter1Element.style.color = color1.color;
+            letter2Element.style.color = color2.color;
+
+            correctLetterIndex = Math.random() < 0.5 ? letter1Obj.index : letter2Obj.index;
+            updateAudioSource();
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                shapes: ['square', 'circle', 'star'],
+            });
+        }
+
+        function updateAudioSource() {
+            const soundFile = `nova/${correctLetterIndex}.mp3`;
+            audio.src = soundFile;
+        }
+
+        function playLetterSound() {
+            audio.play().catch(error => {
+                console.error('Error playing audio:', error);
+            });
+        }
+
+        function handleLetterClick(event) {
+            const clickedLetter = event.target;
+            const clickedIndex = arabicLetters.indexOf(clickedLetter.textContent);
+
+            if (clickedIndex === correctLetterIndex) {
+                triggerConfetti();
+                setTimeout(() => {
+                    displayNewLetters();
+                    playLetterSound();
+                }, 2000);
+            } else {
+                document.querySelectorAll('.letter').forEach(letter => {
+                    letter.style.color = 'gray';
+                });
+            }
+        }
+
+        document.getElementById('letter1').addEventListener('click', handleLetterClick);
+        document.getElementById('letter2').addEventListener('click', handleLetterClick);
+        document.getElementById('speaker').addEventListener('click', playLetterSound);
+
+        // Initial display
+        displayNewLetters();
+    </script>
+</body>
+</html>
