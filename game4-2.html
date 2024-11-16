@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <title>Arabic Letters Grid Game</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #000000;
+            font-family: Arial, sans-serif;
+        }
+        #speaker {
+            background: transparent;
+            border: 2px solid #00FFFF;
+            color: #00FFFF;
+            padding: 10px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            text-align: center;
+            font-size: 1.2em;
+            margin: 20px auto;
+            max-width: 200px;
+        }
+        #speaker:hover {
+            background: #00FFFF;
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
+            transform: scale(1.05);
+        }
+        #speaker:active {
+            transform: scale(0.95);
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+        }
+        #speaker {
+            animation: pulse 2s infinite;
+        }
+        #letters-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .letter {
+            width: 30vmin;
+            height: 30vmin;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .letter-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+        .letter.flipped .letter-inner {
+            transform: rotateY(180deg);
+        }
+        .letter-front, .letter-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+        }
+        .letter-front {
+            font-size: 15vmin;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .letter-back {
+            transform: rotateY(180deg);
+            font-size: 15vmin;
+        }
+        #score {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 8vmin;
+            font-weight: bold;
+            color: #FFFFFF;
+        }
+        .play-sound {
+            background: transparent;
+            border: 2px solid #00FFFF; /* Neon cyan border */
+            color: #00FFFF;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Cyan glow effect */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .play-sound:hover {
+            background: #00FFFF;
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8); /* Stronger glow on hover */
+            transform: scale(1.05);
+        }
+
+        .play-sound:active {
+            transform: scale(0.95);
+        }
+
+        /* Optional: Add a cool pulse animation */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+        }
+
+        .play-sound {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="speaker">🔊 Play Sound</div>
+    <div id="letters-container">
+        <div id="letter1" class="letter"><div class="letter-inner"><div class="letter-front"></div><div class="letter-back"></div></div></div>
+        <div id="letter2" class="letter"><div class="letter-inner"><div class="letter-front"></div><div class="letter-back"></div></div></div>
+        <div id="letter3" class="letter"><div class="letter-inner"><div class="letter-front"></div><div class="letter-back"></div></div></div>
+        <div id="letter4" class="letter"><div class="letter-inner"><div class="letter-front"></div><div class="letter-back"></div></div></div>
+    </div>
+    <div id="score">0</div>
+
+    <script>
+        const arabicLetters = 'أبتثجحخدذرزسشصضطظعغفقكلمنهوي';
+        const darkPastelColors = [
+            '#CF6A7C', '#CF9967', '#CFCF67', '#67CF8F', '#67A2CF', '#A367CF', '#CF67C0', '#8F9FC7'
+        ];
+        const audio1 = new Audio();
+        const audio2 = new Audio();
+        let correctLetterIndex = -1;
+        let score = 0;
+
+        function getRandomArabicLetter() {
+            const firstIndex = Math.floor(Math.random() * arabicLetters.length);
+            let secondIndex;
+            do {
+                secondIndex = Math.floor(Math.random() * arabicLetters.length);
+            } while (secondIndex === firstIndex);
+
+            const letterPair = arabicLetters[firstIndex] + arabicLetters[secondIndex];
+            return {
+                letter: letterPair,
+                index: firstIndex + '-' + secondIndex
+            };
+        }
+
+        function getDistinctColors() {
+            const neonColors = [
+                '#FF00FF', // Neon Pink
+                '#39FF14', // Neon Green
+                '#00FFFF', // Neon Cyan
+                '#FF0066', // Neon Hot Pink
+                '#FFFF00', // Neon Yellow
+                '#FF3131', // Neon Red
+                '#4D4DFF'  // Electric Blue
+            ];
+            
+            const shuffled = [...neonColors].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, 4);
+        }
+
+        function displayNewLetters() {
+            const letterElements = document.querySelectorAll('.letter');
+            const usedIndices = new Set();
+            const colors = getDistinctColors();
+            const letterPairs = [];
+
+            letterElements.forEach((element, index) => {
+                let letterObj;
+                do {
+                    letterObj = getRandomArabicLetter();
+                } while (usedIndices.has(letterObj.index));
+
+                usedIndices.add(letterObj.index);
+                element.querySelector('.letter-front').textContent = letterObj.letter;
+                element.querySelector('.letter-back').textContent = '';
+                element.querySelector('.letter-front').style.backgroundColor = colors[index];
+                element.querySelector('.letter-back').style.backgroundColor = colors[index];
+                element.classList.remove('flipped');
+                
+                letterPairs[index] = {
+                    pair: letterObj.letter,
+                    indices: letterObj.index
+                };
+            });
+            
+            correctLetterIndex = Math.floor(Math.random() * letterElements.length);
+            
+            const [first, second] = letterPairs[correctLetterIndex].indices.split('-');
+            
+            audio1.src = `nova/${first}.mp3`;
+            audio2.src = `nova/${second}.mp3`;
+            
+            console.log('Correct letter pair:', letterPairs[correctLetterIndex].pair);
+            console.log('Audio indices:', first, second);
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                shapes: ['square', 'circle', 'star'],
+            });
+        }
+
+        function updateAudioSource() {
+            const [first, second] = correctLetterIndex.split('-');
+            audio1.src = `nova/${first}.mp3`;
+            audio2.src = `nova/${second}.mp3`;
+        }
+
+        function playLetterSound() {
+            audio1.play()
+                .then(() => {
+                    audio1.addEventListener('ended', () => {
+                        audio2.play().catch(error => {
+                            console.error('Error playing second audio:', error);
+                        });
+                    }, { once: true });
+                })
+                .catch(error => {
+                    console.error('Error playing first audio:', error);
+                });
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = `${score}`;
+        }
+
+        function handleLetterClick(event) {
+            const clickedLetter = event.target.closest('.letter');
+            const clickedIndex = Array.from(document.querySelectorAll('.letter')).indexOf(clickedLetter);
+            
+            clickedLetter.classList.add('flipped');
+            console.log('Clicked index:', clickedIndex);
+            console.log('Correct index:', correctLetterIndex);
+            setTimeout(() => {
+                if (clickedIndex === correctLetterIndex) {
+                    clickedLetter.querySelector('.letter-back').textContent = '😊';
+                    score++;
+                    updateScore();
+                    triggerConfetti();
+                    setTimeout(() => {
+                        displayNewLetters();
+                        playLetterSound();
+                    }, 1500);
+                } else {
+                    clickedLetter.querySelector('.letter-back').textContent = '😞';
+                }
+            }, 250);
+        }
+
+        document.querySelectorAll('.letter').forEach(letter => {
+            letter.addEventListener('click', handleLetterClick);
+        });
+        document.getElementById('speaker').addEventListener('click', playLetterSound);
+
+        // Initial display
+        displayNewLetters();
+        updateScore();
+    </script>
+</body>
+</html>
