@@ -134,6 +134,16 @@
         .play-sound {
             animation: pulse 2s infinite;
         }
+
+        @keyframes flashRedAndGrow {
+            0% { transform: scale(1); color: #FFFFFF; }
+            50% { transform: scale(1.5); color: #FF0000; }
+            100% { transform: scale(1); color: #FFFFFF; }
+        }
+
+        .flash-animation {
+            animation: flashRedAndGrow 0.8s ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -153,6 +163,8 @@
         ];
         const audio1 = new Audio();
         const audio2 = new Audio();
+        const correctSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
+        const incorrectSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3');
         let correctLetterIndex = -1;
         let score = 0;
 
@@ -259,10 +271,9 @@
             const clickedIndex = Array.from(document.querySelectorAll('.letter')).indexOf(clickedLetter);
             
             clickedLetter.classList.add('flipped');
-            console.log('Clicked index:', clickedIndex);
-            console.log('Correct index:', correctLetterIndex);
             setTimeout(() => {
                 if (clickedIndex === correctLetterIndex) {
+                    correctSound.play();
                     clickedLetter.querySelector('.letter-back').textContent = '😊';
                     score++;
                     updateScore();
@@ -272,7 +283,15 @@
                         playLetterSound();
                     }, 1500);
                 } else {
+                    incorrectSound.play();
                     clickedLetter.querySelector('.letter-back').textContent = '😞';
+                    score = 0;
+                    const scoreElement = document.getElementById('score');
+                    scoreElement.classList.add('flash-animation');
+                    scoreElement.addEventListener('animationend', () => {
+                        scoreElement.classList.remove('flash-animation');
+                    }, { once: true });
+                    updateScore();
                 }
             }, 250);
         }
