@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic Letters Grid Game</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #000000;
+            font-family: Arial, sans-serif;
+        }
+        #speaker {
+            background: transparent;
+            border: 2px solid #00FFFF;
+            color: #00FFFF;
+            padding: 10px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            text-align: center;
+            font-size: 1.2em;
+            margin: 20px auto;
+            max-width: 200px;
+        }
+        #speaker:hover {
+            background: #00FFFF;
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
+            transform: scale(1.05);
+        }
+        #speaker:active {
+            transform: scale(0.95);
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+        }
+        #speaker {
+            animation: pulse 2s infinite;
+        }
+        #letters-container {
+            display: block;
+            background: none;
+            padding: 0;
+            box-shadow: none;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        .letter {
+            position: absolute;
+            width: 30vmin;
+            height: 30vmin;
+            cursor: pointer;
+        }
+        .letter-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            font-size: 15vmin;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        #score {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 8vmin;
+            font-weight: bold;
+            color: #FFFFFF;
+        }
+        .play-sound {
+            background: transparent;
+            border: 2px solid #00FFFF; /* Neon cyan border */
+            color: #00FFFF;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Cyan glow effect */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .play-sound:hover {
+            background: #00FFFF;
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8); /* Stronger glow on hover */
+            transform: scale(1.05);
+        }
+
+        .play-sound:active {
+            transform: scale(0.95);
+        }
+
+        /* Optional: Add a cool pulse animation */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+        }
+
+        .play-sound {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes flashRedAndGrow {
+            0% { transform: scale(1); color: #FFFFFF; }
+            50% { transform: scale(1.5); color: #FF0000; }
+            100% { transform: scale(1); color: #FFFFFF; }
+        }
+
+        .flash-animation {
+            animation: flashRedAndGrow 0.8s ease-in-out;
+        }
+
+        #rocket {
+            width: 80px;
+            height: 80px;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #rocket svg {
+            width: 100%;
+            height: 100%;
+            fill: #FF3131;
+            transition: transform 0.4s ease;
+            transform: rotate(0deg);
+        }
+
+        .rocket-correct svg {
+            filter: drop-shadow(0 0 10px #FF3131);
+        }
+
+        .rocket-wrong svg {
+            filter: brightness(0);
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .position-transition {
+            transition: all 0.8s ease;
+        }
+
+        .space-dust {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, 
+                rgba(255, 255, 255, 1) 0%, 
+                rgba(0, 255, 255, 0.8) 30%, 
+                rgba(0, 255, 255, 0.4) 60%,
+                transparent 100%);
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.8),
+                        0 0 20px rgba(255, 255, 255, 0.6);
+            filter: blur(1px);
+            animation: twinkle 4s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { 
+                opacity: 0.6;
+                transform: scale(0.8);
+                filter: blur(1px);
+            }
+            100% { 
+                opacity: 1;
+                transform: scale(1.2);
+                filter: blur(2px);
+            }
+        }
+
+        /* Make the particles much bigger */
+        .space-dust:nth-child(1) { width: 24px; height: 24px; top: 15%; left: 10%; animation-delay: 0.1s; }
+        .space-dust:nth-child(2) { width: 32px; height: 32px; top: 25%; left: 45%; animation-delay: 0.3s; }
+        .space-dust:nth-child(3) { width: 16px; height: 16px; top: 55%; left: 75%; animation-delay: 0.5s; }
+        .space-dust:nth-child(4) { width: 28px; height: 28px; top: 80%; left: 30%; animation-delay: 0.7s; }
+        .space-dust:nth-child(5) { width: 40px; height: 40px; top: 40%; left: 60%; animation-delay: 0.9s; }
+        .space-dust:nth-child(6) { width: 20px; height: 20px; top: 70%; left: 85%; animation-delay: 1.1s; }
+        .space-dust:nth-child(7) { width: 32px; height: 32px; top: 30%; left: 25%; animation-delay: 1.3s; }
+        .space-dust:nth-child(8) { width: 24px; height: 24px; top: 90%; left: 15%; animation-delay: 1.5s; }
+        .space-dust:nth-child(9) { width: 16px; height: 16px; top: 20%; left: 95%; animation-delay: 1.7s; }
+        .space-dust:nth-child(10) { width: 48px; height: 48px; top: 60%; left: 40%; animation-delay: 1.9s; }
+        .space-dust:nth-child(11) { width: 20px; height: 20px; top: 85%; left: 55%; animation-delay: 2.1s; }
+        .space-dust:nth-child(12) { width: 28px; height: 28px; top: 45%; left: 80%; animation-delay: 2.3s; }
+        .space-dust:nth-child(13) { width: 36px; height: 36px; top: 75%; left: 20%; animation-delay: 2.5s; }
+        .space-dust:nth-child(14) { width: 16px; height: 16px; top: 35%; left: 70%; animation-delay: 2.7s; }
+        .space-dust:nth-child(15) { width: 40px; height: 40px; top: 50%; left: 5%; animation-delay: 2.9s; }
+        .space-dust:nth-child(16) { width: 24px; height: 24px; top: 95%; left: 35%; animation-delay: 3.1s; }
+        .space-dust:nth-child(17) { width: 32px; height: 32px; top: 5%; left: 65%; animation-delay: 3.3s; }
+        .space-dust:nth-child(18) { width: 28px; height: 28px; top: 65%; left: 90%; animation-delay: 3.5s; }
+        .space-dust:nth-child(19) { width: 20px; height: 20px; top: 10%; left: 50%; animation-delay: 3.7s; }
+        .space-dust:nth-child(20) { width: 44px; height: 44px; top: 40%; left: 15%; animation-delay: 3.9s; }
+        /* Add new fade overlay style */
+        #fade-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            z-index: 9999;
+        }
+
+        /* Add fade-out class */
+        .fade-out {
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="fade-overlay"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div class="space-dust"></div>
+    <div id="speaker">🔊 Play Sound</div>
+    <div id="letters-container">
+        <div id="letter1" class="letter"><div class="letter-front"></div></div>
+        <div id="letter2" class="letter"><div class="letter-front"></div></div>
+    </div>
+    <div id="rocket">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Rocket body -->
+            <path d="M50,10 
+                     C65,10 70,30 70,50 
+                     L70,70 
+                     C70,75 65,80 60,80 
+                     L40,80 
+                     C35,80 30,75 30,70 
+                     L30,50 
+                     C30,30 35,10 50,10 Z"/>
+            <!-- Rocket window -->
+            <circle cx="50" cy="40" r="10" fill="#00FFFF"/>
+            <!-- Left fin -->
+            <path d="M30,60 L20,80 L30,70 Z"/>
+            <!-- Right fin -->
+            <path d="M70,60 L80,80 L70,70 Z"/>
+            <!-- Rocket flames -->
+            <path d="M40,80 
+                     Q45,85 50,90 
+                     Q55,85 60,80" 
+                  fill="none" 
+                  stroke="#FF8C00" 
+                  stroke-width="3"/>
+        </svg>
+    </div>
+    <div id="score">0</div>
+
+    <script>
+        const arabicLetters = 'أبتثجحخدذرزسشصضطظعغفقكلمنهوي';
+        const darkPastelColors = [
+            '#CF6A7C', '#CF9967', '#CFCF67', '#67CF8F', '#67A2CF', '#A367CF', '#CF67C0', '#8F9FC7'
+        ];
+        const audio1 = new Audio();
+        const correctSound = new Audio('sounds/rocket.wav');
+        correctSound.volume = 0.3;
+        const incorrectSound = new Audio('sounds/buzzer.wav');
+        incorrectSound.volume = 0.3;
+        let correctLetterIndex = -1;
+        let score = 0;
+
+        function getRandomArabicLetter() {
+            if (!window.usedLetters) {
+                window.usedLetters = new Set();
+            }
+
+            let index;
+            do {
+                index = Math.floor(Math.random() * arabicLetters.length);
+            } while (window.usedLetters.has(arabicLetters[index]));
+
+            // Add letter to used set
+            window.usedLetters.add(arabicLetters[index]);
+
+            return {
+                letter: arabicLetters[index],
+                index: index
+            };
+        }
+
+        function getDistinctColors() {
+            const neonColors = [
+                '#FF00FF', // Neon Pink
+                '#39FF14', // Neon Green
+                '#00FFFF', // Neon Cyan
+                '#FF0066', // Neon Hot Pink
+                '#FFFF00', // Neon Yellow
+                '#FF3131', // Neon Red
+                '#4D4DFF'  // Electric Blue
+            ];
+            
+            const shuffled = [...neonColors].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, 4);
+        }
+
+        function displayNewLetters() {
+            // Reset used letters at the start of each new round
+            window.usedLetters = new Set();
+            
+            const letterElements = document.querySelectorAll('.letter');
+            const usedIndices = new Set();
+            const colors = getDistinctColors();
+            const letterPairs = [];
+            
+            // Get card dimensions
+            const cardWidth = 30; // 30vmin
+            const cardHeight = 30; // 30vmin
+            
+            // Convert vmin to pixels
+            const vmin = Math.min(window.innerWidth, window.innerHeight) / 100;
+            const cardWidthPx = cardWidth * vmin;
+            const cardHeightPx = cardHeight * vmin;
+            
+            // Calculate safe boundaries (padding of 20px from edges)
+            const padding = 20;
+            const safeWidth = window.innerWidth - cardWidthPx - padding * 2;
+            const safeHeight = window.innerHeight - cardHeightPx - padding * 2;
+            
+            // Keep track of used areas to prevent overlap
+            const usedAreas = [];
+            
+            // Calculate rocket's area
+            const rocketElement = document.getElementById('rocket');
+            const rocketRect = rocketElement.getBoundingClientRect();
+            const rocketArea = {
+                x: rocketRect.left,
+                y: rocketRect.top,
+                width: rocketRect.width,
+                height: rocketRect.height
+            };
+            
+            letterElements.forEach((element, index) => {
+                let randomX, randomY;
+                let overlap;
+                
+                // Try to find non-overlapping position (max 50 attempts)
+                let attempts = 0;
+                do {
+                    randomX = padding + Math.random() * safeWidth;
+                    randomY = padding + Math.random() * safeHeight;
+                    
+                    // Check if this position overlaps with any existing cards or rocket
+                    overlap = usedAreas.some(area => {
+                        const xOverlap = Math.abs(randomX - area.x) < cardWidthPx + 20;
+                        const yOverlap = Math.abs(randomY - area.y) < cardHeightPx + 20;
+                        return xOverlap && yOverlap;
+                    });
+                    
+                    // Check overlap with rocket (add extra padding around rocket)
+                    const rocketPadding = 40;
+                    const rocketOverlap = 
+                        randomX < (rocketArea.x + rocketArea.width + rocketPadding) &&
+                        randomX + cardWidthPx > (rocketArea.x - rocketPadding) &&
+                        randomY < (rocketArea.y + rocketArea.height + rocketPadding) &&
+                        randomY + cardHeightPx > (rocketArea.y - rocketPadding);
+                    
+                    overlap = overlap || rocketOverlap;
+                    
+                    attempts++;
+                } while (overlap && attempts < 50);
+                
+                // Store the used area
+                usedAreas.push({
+                    x: randomX,
+                    y: randomY
+                });
+                
+                // Position the card
+                element.style.left = randomX + 'px';
+                element.style.top = randomY + 'px';
+
+                // Rest of existing letter setup code
+                let letterObj;
+                do {
+                    letterObj = getRandomArabicLetter();
+                } while (usedIndices.has(letterObj.index));
+
+                usedIndices.add(letterObj.index);
+                element.querySelector('.letter-front').textContent = letterObj.letter;
+                element.querySelector('.letter-front').style.backgroundColor = colors[index];
+                
+                letterPairs[index] = {
+                    letter: letterObj.letter,
+                    index: letterObj.index
+                };
+            });
+            
+            // Reset rocket position
+            rocketElement.style.left = '50%';
+            rocketElement.style.bottom = '20px';
+            rocketElement.style.transform = 'translateX(-50%)';
+            rocketElement.classList.remove('rocket-correct', 'rocket-wrong');
+            rocketElement.style.opacity = '1';
+            
+            correctLetterIndex = Math.floor(Math.random() * letterElements.length);
+            
+            audio1.src = `nova/${letterPairs[correctLetterIndex].index}.mp3`;
+            
+            console.log('Correct letter:', letterPairs[correctLetterIndex].letter);
+        }
+
+        function playLetterSound() {
+            audio1.play().catch(error => {
+                console.error('Error playing audio:', error);
+            });
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = `${score}`;
+        }
+
+        function handleLetterClick(event) {
+            const clickedLetter = event.target.closest('.letter');
+            const clickedIndex = Array.from(document.querySelectorAll('.letter')).indexOf(clickedLetter);
+            const rocket = document.getElementById('rocket');
+            
+            const letterRect = clickedLetter.getBoundingClientRect();
+            const rocketRect = rocket.getBoundingClientRect();
+            
+            // Calculate angle for rotation
+            const dx = letterRect.left + letterRect.width/2 - (rocketRect.left + rocketRect.width/2);
+            const dy = letterRect.top + letterRect.height/2 - (rocketRect.top + rocketRect.height/2);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+            
+            // Store initial position before any changes
+            const startX = rocketRect.left + rocketRect.width/2;
+            const startY = rocketRect.top + rocketRect.height/2;
+            
+            // First rotate the rocket while maintaining its position
+            rocket.style.position = 'absolute';
+            rocket.style.left = startX + 'px';
+            rocket.style.top = startY + 'px';
+            rocket.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+            
+            // After rotation, start movement animation
+            setTimeout(() => {
+                const targetX = letterRect.left + letterRect.width/2;
+                const targetY = letterRect.top + letterRect.height/2;
+                
+                const duration = 800;
+                const startTime = performance.now();
+                
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Easing function (ease-out)
+                    const easeProgress = 1 - Math.pow(1 - progress, 3);
+                    
+                    const currentX = startX + (targetX - startX) * easeProgress;
+                    const currentY = startY + (targetY - startY) * easeProgress;
+                    
+                    rocket.style.left = currentX + 'px';
+                    rocket.style.top = currentY + 'px';
+                    rocket.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        // Animation complete - handle success/failure
+                        if (clickedIndex === correctLetterIndex) {
+                            correctSound.play();
+                            rocket.classList.add('rocket-correct');
+                            score++;
+                            updateScore();
+                        } else {
+                            incorrectSound.play();
+                            rocket.classList.add('rocket-wrong');
+                            score = 0;
+                            const scoreElement = document.getElementById('score');
+                            scoreElement.classList.add('flash-animation');
+                            
+                            document.getElementById('fade-overlay').classList.add('fade-out');
+                            
+                            setTimeout(() => {
+                                document.getElementById('fade-overlay').classList.remove('fade-out');
+                                scoreElement.classList.remove('flash-animation');
+                                updateScore();
+                                returnRocketToStart();
+                                displayNewLetters();
+                            }, 1000);
+                            return;
+                        }
+                        
+                        // Return rocket to start position after delay
+                        setTimeout(() => {
+                            returnRocketToStart();
+                            displayNewLetters();
+                            if (clickedIndex === correctLetterIndex) {
+                                playLetterSound();
+                            }
+                        }, 1500);
+                    }
+                }
+                
+                requestAnimationFrame(animate);
+            }, 400);
+        }
+
+        function returnRocketToStart() {
+            const rocket = document.getElementById('rocket');
+            rocket.style.left = '50%';
+            rocket.style.bottom = '20px';
+            rocket.style.top = 'auto';
+            rocket.style.transform = 'translateX(-50%)';
+            rocket.querySelector('svg').style.transform = 'rotate(0deg)';
+        }
+
+        document.querySelectorAll('.letter').forEach(letter => {
+            letter.addEventListener('click', handleLetterClick);
+        });
+        document.getElementById('speaker').addEventListener('click', playLetterSound);
+
+        // Initial display
+        displayNewLetters();
+        updateScore();
+    </script>
+</body>
+</html>
