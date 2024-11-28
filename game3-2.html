@@ -224,9 +224,40 @@
         .fade-out {
             opacity: 1 !important;
         }
+
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            background-color: transparent;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #speaker, #letters-container, #rocket, #score {
+            visibility: hidden;
+        }
+
+        .game-started #speaker,
+        .game-started #letters-container,
+        .game-started #rocket,
+        .game-started #score {
+            visibility: visible;
+        }
     </style>
 </head>
 <body>
+    <div id="start-screen">
+        <button id="start-button" class="play-sound" style="font-size: 36px; padding: 20px 40px;">Start Game</button>
+    </div>
     <div id="fade-overlay"></div>
     <div class="space-dust"></div>
     <div class="space-dust"></div>
@@ -294,6 +325,8 @@
         incorrectSound.volume = 0.3;
         let correctLetterIndex = -1;
         let score = 0;
+        const introMusic = new Audio('sounds/intro.mp3');
+        introMusic.playbackRate = 1.5;
 
         function getRandomArabicLetter() {
             // Keep track of used letters to ensure they're all distinct
@@ -454,6 +487,10 @@
         }
 
         function playLetterSound() {
+            // Stop intro music if it's still playing
+            introMusic.pause();
+            introMusic.currentTime = 0;
+
             audio1.play()
                 .then(() => {
                     audio1.addEventListener('ended', () => {
@@ -571,14 +608,25 @@
             rocket.querySelector('svg').style.transform = 'rotate(0deg)';
         }
 
+        function startGame() {
+            const startScreen = document.getElementById('start-screen');
+            startScreen.classList.add('hidden');
+            document.body.classList.add('game-started');
+            
+            // Play intro music
+            introMusic.play().then(() => {
+                introMusic.addEventListener('ended', () => {
+                    displayNewLetters();
+                    playLetterSound();
+                }, { once: true });
+            });
+        }
+
         document.querySelectorAll('.letter').forEach(letter => {
             letter.addEventListener('click', handleLetterClick);
         });
         document.getElementById('speaker').addEventListener('click', playLetterSound);
-
-        // Initial display
-        displayNewLetters();
-        updateScore();
+        document.getElementById('start-button').addEventListener('click', startGame);
     </script>
 </body>
 </html>
