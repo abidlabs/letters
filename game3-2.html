@@ -288,7 +288,7 @@
         ];
         const audio1 = new Audio();
         const audio2 = new Audio();
-        const correctSound = new Audio('sounds/rocket.wav');
+        const correctSound = new Audio('sounds/correct.wav');
         correctSound.volume = 0.3;
         const incorrectSound = new Audio('sounds/buzzer.wav');
         incorrectSound.volume = 0.3;
@@ -476,6 +476,12 @@
             const clickedIndex = Array.from(document.querySelectorAll('.letter')).indexOf(clickedLetter);
             const rocket = document.getElementById('rocket');
             
+            if (clickedIndex === correctLetterIndex) {
+                correctSound.play();
+            } else {
+                incorrectSound.play();
+            }
+
             const letterRect = clickedLetter.getBoundingClientRect();
             const rocketRect = rocket.getBoundingClientRect();
             
@@ -499,10 +505,11 @@
                 const targetX = letterRect.left + letterRect.width/2;
                 const targetY = letterRect.top + letterRect.height/2;
                 
-                const duration = 800;
+                const duration = 1400;
                 const startTime = performance.now();
                 
                 function animate(currentTime) {
+
                     const elapsed = currentTime - startTime;
                     const progress = Math.min(elapsed / duration, 1);
                     
@@ -521,12 +528,10 @@
                     } else {
                         // Animation complete - handle success/failure
                         if (clickedIndex === correctLetterIndex) {
-                            correctSound.play();
                             rocket.classList.add('rocket-correct');
                             score++;
                             updateScore();
                         } else {
-                            incorrectSound.play();
                             rocket.classList.add('rocket-wrong');
                             score = 0;
                             const scoreElement = document.getElementById('score');
@@ -548,9 +553,7 @@
                         setTimeout(() => {
                             returnRocketToStart();
                             displayNewLetters();
-                            if (clickedIndex === correctLetterIndex) {
-                                playLetterSound();
-                            }
+                            playLetterSound();
                         }, 1500);
                     }
                 }
