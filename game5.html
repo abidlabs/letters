@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic Letters Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            direction: rtl;
+        }
+
+        /* Mobile landscape optimization */
+        @media screen and (orientation: landscape) and (max-width: 900px) {
+            body {
+                padding: 10px;
+            }
+        }
+
+        .word-container {
+            background-color: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .arabic-word {
+            font-size: 4rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            direction: rtl;
+            unicode-bidi: bidi-override;
+        }
+
+        .letter {
+            color: black;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .letter.highlighted {
+            color: #3498db;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-button {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 10px;
+            background-color: #3498db;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .nav-button:hover {
+            background-color: #2980b9;
+            transform: scale(1.1);
+        }
+
+        .nav-button:active {
+            transform: scale(0.95);
+        }
+
+        .nav-button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .rectangle {
+            width: 80px;
+            height: 60px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            border: 2px solid #bdc3c7;
+        }
+
+        /* Triangle shapes using CSS */
+        .triangle-left::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid white;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+
+        .triangle-right::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 15px solid white;
+            border-right: 15px solid transparent;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+
+        /* Mobile landscape specific adjustments */
+        @media screen and (orientation: landscape) and (max-height: 500px) {
+            .arabic-word {
+                font-size: 3rem;
+            }
+            
+            .word-container {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .nav-button {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .rectangle {
+                width: 60px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="word-container">
+        <div class="arabic-word" id="arabicWord"></div>
+    </div>
+    
+    <div class="controls">
+        <button class="nav-button triangle-left" id="nextBtn" onclick="nextLetter()"></button>
+        <div class="rectangle"></div>
+        <button class="nav-button triangle-right" id="prevBtn" onclick="prevLetter()"></button>
+    </div>
+
+    <script>
+        // Array of 3-5 letter Quranic words without harakat
+        const quranicWords = [
+            'الله',  // Allah
+            'رب',    // Rabb (Lord)
+            'عبد',   // Abd (servant)
+            'كتب',   // Kutub (books)
+            'نور',   // Nur (light)
+            'حق',    // Haqq (truth)
+            'علم',   // Ilm (knowledge)
+            'صبر',   // Sabr (patience)
+            'شكر',   // Shukr (gratitude)
+            'حمد',   // Hamd (praise)
+            'فضل',   // Fadl (grace)
+            'رحم',   // Rahma (mercy)
+            'هدى',   // Huda (guidance)
+            'خير',   // Khayr (good)
+            'بركة',  // Baraka (blessing)
+            'توبة',  // Tawba (repentance)
+            'صلاة',  // Salah (prayer)
+            'زكاة',  // Zakah (charity)
+            'حج',    // Hajj (pilgrimage)
+            'صوم'    // Sawm (fasting)
+        ];
+
+        let currentWordIndex = 0;
+        let currentLetterIndex = 0;
+        let currentWord = '';
+
+        function initializeWord() {
+            currentWord = quranicWords[currentWordIndex];
+            currentLetterIndex = 0;
+            displayWord();
+            updateButtons();
+        }
+
+        function displayWord() {
+            const wordElement = document.getElementById('arabicWord');
+            const letters = currentWord.split('');
+            
+            wordElement.innerHTML = letters.map((letter, index) => 
+                `<span class="letter ${index === currentLetterIndex ? 'highlighted' : ''}">${letter}</span>`
+            ).join('');
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            // Hide/show previous button based on current letter position
+            prevBtn.style.display = currentLetterIndex === 0 ? 'none' : 'flex';
+            
+            // Always show next button
+            nextBtn.style.display = 'flex';
+        }
+
+        function nextLetter() {
+            if (currentLetterIndex < currentWord.length - 1) {
+                currentLetterIndex++;
+            } else {
+                // Move to next word and reset to first letter
+                currentWordIndex = (currentWordIndex + 1) % quranicWords.length;
+                initializeWord();
+                return;
+            }
+            displayWord();
+            updateButtons();
+        }
+
+        function prevLetter() {
+            if (currentLetterIndex > 0) {
+                currentLetterIndex--;
+                displayWord();
+                updateButtons();
+            }
+        }
+
+        // Initialize the app
+        initializeWord();
+    </script>
+</body>
+</html>
