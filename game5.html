@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arabic Letters Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -20,12 +21,13 @@
             align-items: center;
             min-height: 100vh;
             direction: rtl;
+            padding: 0 10%;
         }
 
         /* Mobile landscape optimization */
         @media screen and (orientation: landscape) and (max-width: 900px) {
             body {
-                padding: 10px;
+                padding: 10px 10%;
             }
         }
 
@@ -36,15 +38,30 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             margin-bottom: 40px;
             text-align: center;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
         }
 
         .arabic-word {
-            font-size: 4rem;
-            font-weight: bold;
-            letter-spacing: 5px;
-            margin-bottom: 20px;
+            font-family: 'Amiri Quran', 'Scheherazade New', serif;
+            font-size: 12vw;
+            font-weight: 400;
+            letter-spacing: 0.5vw;
+            margin: 0;
             direction: rtl;
             unicode-bidi: bidi-override;
+            line-height: 1;
+            transform: translateY(-10%);
+        }
+        
+        .invisible-letter {
+            color: white;
+            transition: transform 0.5s ease;
+            display: inline-block;
         }
 
         .letter {
@@ -57,6 +74,7 @@
             color: #3498db;
         }
 
+
         .controls {
             display: flex;
             justify-content: center;
@@ -65,22 +83,19 @@
         }
 
         .nav-button {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             border: none;
-            border-radius: 10px;
-            background-color: #3498db;
-            color: white;
-            font-size: 24px;
+            background: transparent;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             justify-content: center;
             align-items: center;
+            visibility: visible;
         }
 
         .nav-button:hover {
-            background-color: #2980b9;
             transform: scale(1.1);
         }
 
@@ -88,18 +103,21 @@
             transform: scale(0.95);
         }
 
-        .nav-button:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-            transform: none;
+        .nav-button.hidden {
+            visibility: hidden;
         }
 
         .rectangle {
-            width: 80px;
-            height: 60px;
-            background-color: #ecf0f1;
+            width: 240px;
+            height: 80px;
+            background-color: #d0d0d0;
             border-radius: 10px;
-            border: 2px solid #bdc3c7;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .rectangle:hover {
+            background-color: #c0c0c0;
         }
 
         /* Triangle shapes using CSS */
@@ -107,43 +125,67 @@
             content: '';
             width: 0;
             height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid white;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
+            border-left: 35px solid transparent;
+            border-right: 45px solid #d0d0d0;
+            border-top: 40px solid transparent;
+            border-bottom: 40px solid transparent;
         }
 
         .triangle-right::before {
             content: '';
             width: 0;
             height: 0;
-            border-left: 15px solid white;
-            border-right: 15px solid transparent;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
+            border-left: 45px solid #d0d0d0;
+            border-right: 35px solid transparent;
+            border-top: 40px solid transparent;
+            border-bottom: 40px solid transparent;
         }
 
         /* Mobile landscape specific adjustments */
         @media screen and (orientation: landscape) and (max-height: 500px) {
             .arabic-word {
-                font-size: 3rem;
+                font-size: 15vh;
+                letter-spacing: 1vh;
             }
             
+            
             .word-container {
-                padding: 20px;
-                margin-bottom: 20px;
+                padding: 15px;
+                margin-bottom: 15px;
             }
             
             .nav-button {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
+                width: 60px;
+                height: 60px;
             }
             
             .rectangle {
-                width: 60px;
-                height: 50px;
+                width: 200px;
+                height: 60px;
             }
+            
+            .triangle-left::before {
+                border-left: 25px solid transparent;
+                border-right: 35px solid #d0d0d0;
+                border-top: 30px solid transparent;
+                border-bottom: 30px solid transparent;
+            }
+
+            .triangle-right::before {
+                border-left: 35px solid #d0d0d0;
+                border-right: 25px solid transparent;
+                border-top: 30px solid transparent;
+                border-bottom: 30px solid transparent;
+            }
+        }
+
+        /* For very wide screens, limit the font size */
+        @media screen and (min-width: 1200px) {
+            .arabic-word {
+                font-size: 8rem;
+                letter-spacing: 0.5rem;
+            }
+            
         }
     </style>
 </head>
@@ -153,9 +195,9 @@
     </div>
     
     <div class="controls">
-        <button class="nav-button triangle-left" id="nextBtn" onclick="nextLetter()"></button>
-        <div class="rectangle"></div>
         <button class="nav-button triangle-right" id="prevBtn" onclick="prevLetter()"></button>
+        <div class="rectangle" onclick="addSpacesAroundLetter()"></div>
+        <button class="nav-button triangle-left" id="nextBtn" onclick="nextLetter()"></button>
     </div>
 
     <script>
@@ -186,35 +228,123 @@
         let currentWordIndex = 0;
         let currentLetterIndex = 0;
         let currentWord = '';
+        let spacesAdded = false;
+        let gapProgress = 0; // 0 to 1, controls the gap size
+
+        // Mapping Arabic letters to replacement letters for invisible duplicates
+        // Letters that connect to next letter → ل (laam)
+        // Letters that don't connect to next letter → ر (raa)
+        const letterReplacements = {
+            // Connecting letters (use laam)
+            'ا': 'ل', 'ب': 'ل', 'ت': 'ل', 'ث': 'ل', 'ج': 'ل', 'ح': 'ل', 'خ': 'ل',
+            'س': 'ل', 'ش': 'ل', 'ص': 'ل', 'ض': 'ل', 'ط': 'ل', 'ظ': 'ل', 'ع': 'ل',
+            'غ': 'ل', 'ف': 'ل', 'ق': 'ل', 'ك': 'ل', 'ل': 'ل', 'م': 'ل', 'ن': 'ل',
+            'ه': 'ل', 'و': 'ل', 'ي': 'ل', 'ة': 'ل',
+            
+            // Non-connecting letters (use raa)
+            'د': 'ر', 'ذ': 'ر', 'ر': 'ر', 'ز': 'ر',
+            
+            // Space remains space
+            ' ': ' '
+        };
+
+        function getReplacementLetter(letter) {
+            return letterReplacements[letter] || 'ل'; // Default to laam for unknown letters
+        }
 
         function initializeWord() {
             currentWord = quranicWords[currentWordIndex];
             currentLetterIndex = 0;
+            spacesAdded = false;
+            gapProgress = 0;
             displayWord();
             updateButtons();
         }
 
         function displayWord() {
             const wordElement = document.getElementById('arabicWord');
-            const letters = currentWord.split('');
+            let displayText = currentWord;
+            let adjustedIndex = currentLetterIndex;
             
-            wordElement.innerHTML = letters.map((letter, index) => 
-                `<span class="letter ${index === currentLetterIndex ? 'highlighted' : ''}">${letter}</span>`
-            ).join('');
+            if (spacesAdded) {
+                const letters = currentWord.split('');
+                const highlightedLetter = letters[currentLetterIndex];
+                
+                // Get adjacent letters (or spaces if at boundaries)
+                const prevLetter = currentLetterIndex > 0 ? letters[currentLetterIndex - 1] : ' ';
+                const nextLetter = currentLetterIndex < letters.length - 1 ? letters[currentLetterIndex + 1] : ' ';
+                
+                // Create two-letter sequences: "BA" before and "CB" after (for ABC with B highlighted)
+                const beforeSequence = [highlightedLetter, prevLetter]; // BA
+                const afterSequence = [nextLetter, highlightedLetter];   // CB
+                
+                // Map each letter individually
+                const beforeMapped = beforeSequence.map(letter => getReplacementLetter(letter));
+                const afterMapped = afterSequence.map(letter => getReplacementLetter(letter));
+                
+                // Insert the mapped sequences around the highlighted letter
+                letters.splice(currentLetterIndex + 1, 0, ...afterMapped);
+                letters.splice(currentLetterIndex, 0, ...beforeMapped);
+                displayText = letters.join('');
+                adjustedIndex = currentLetterIndex + 2; // Adjust for the two letters we added before
+            }
+            
+            // Calculate progressive horizontal scale based on gapProgress (0.1 to 1.0 scale)
+            const minScale = 0.1;
+            const maxScale = 1.0;
+            const currentScale = minScale + (maxScale - minScale) * gapProgress;
+            const progressiveTransform = `scaleX(${currentScale})`;
+            
+            const letters = displayText.split('');
+            wordElement.innerHTML = letters.map((letter, index) => {
+                if (spacesAdded && ((index >= currentLetterIndex && index < currentLetterIndex + 2) || 
+                                   (index >= currentLetterIndex + 3 && index < currentLetterIndex + 5))) {
+                    // Make the invisible sequences with progressive horizontal scaling
+                    return `<span class="invisible-letter" style="transform: ${progressiveTransform};">${letter}</span>`;
+                } else {
+                    return `<span class="letter ${index === adjustedIndex ? 'highlighted' : ''}">${letter}</span>`;
+                }
+            }).join('');
+        }
+
+        function addSpacesAroundLetter() {
+            if (!spacesAdded) {
+                // Turn on spacing mode and start growing the gap
+                spacesAdded = true;
+                gapProgress = 0;
+                growGap();
+            } else {
+                // Turn off spacing mode
+                spacesAdded = false;
+                gapProgress = 0;
+                displayWord();
+            }
+        }
+        
+        function growGap() {
+            if (spacesAdded && gapProgress < 1) {
+                gapProgress += 0.05; // Increase by 5% each step
+                if (gapProgress > 1) gapProgress = 1;
+                displayWord();
+                requestAnimationFrame(growGap); // Continue growing until complete
+            }
         }
 
         function updateButtons() {
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
             
-            // Hide/show previous button based on current letter position
-            prevBtn.style.display = currentLetterIndex === 0 ? 'none' : 'flex';
-            
-            // Always show next button
-            nextBtn.style.display = 'flex';
+            // Hide/show previous button based on current letter position using visibility to prevent layout shift
+            if (currentLetterIndex === 0) {
+                prevBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+            }
         }
 
         function nextLetter() {
+            spacesAdded = false; // Reset spaces when navigating
+            gapProgress = 0;
             if (currentLetterIndex < currentWord.length - 1) {
                 currentLetterIndex++;
             } else {
@@ -228,6 +358,8 @@
         }
 
         function prevLetter() {
+            spacesAdded = false; // Reset spaces when navigating
+            gapProgress = 0;
             if (currentLetterIndex > 0) {
                 currentLetterIndex--;
                 displayWord();
