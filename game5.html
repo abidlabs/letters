@@ -263,48 +263,30 @@
 
         function displayWord() {
             const wordElement = document.getElementById('arabicWord');
-            let displayText = currentWord;
-            let adjustedIndex = currentLetterIndex;
+            const letters = currentWord.split('');
             
             if (spacesAdded) {
-                const letters = currentWord.split('');
-                const highlightedLetter = letters[currentLetterIndex];
+                // Calculate progressive letter spacing based on gapProgress
+                const maxSpacing = 2; // Maximum letter spacing in vw
+                const currentSpacing = maxSpacing * gapProgress;
                 
-                // Get adjacent letters (or spaces if at boundaries)
-                const prevLetter = currentLetterIndex > 0 ? letters[currentLetterIndex - 1] : ' ';
-                const nextLetter = currentLetterIndex < letters.length - 1 ? letters[currentLetterIndex + 1] : ' ';
-                
-                // Create two-letter sequences: "BA" before and "CB" after (for ABC with B highlighted)
-                const beforeSequence = [highlightedLetter, prevLetter]; // BA
-                const afterSequence = [nextLetter, highlightedLetter];   // CB
-                
-                // Map each letter individually
-                const beforeMapped = beforeSequence.map(letter => getReplacementLetter(letter));
-                const afterMapped = afterSequence.map(letter => getReplacementLetter(letter));
-                
-                // Insert the mapped sequences around the highlighted letter
-                letters.splice(currentLetterIndex + 1, 0, ...afterMapped);
-                letters.splice(currentLetterIndex, 0, ...beforeMapped);
-                displayText = letters.join('');
-                adjustedIndex = currentLetterIndex + 2; // Adjust for the two letters we added before
+                // Create spans with special spacing around highlighted letter
+                wordElement.innerHTML = letters.map((letter, index) => {
+                    let extraSpacing = '';
+                    
+                    if (index === currentLetterIndex) {
+                        // Highlighted letter: add spacing to both sides
+                        extraSpacing = `margin-left: ${currentSpacing}vw; margin-right: ${currentSpacing}vw;`;
+                    }
+                    
+                    return `<span class="letter ${index === currentLetterIndex ? 'highlighted' : ''}" style="${extraSpacing}">${letter}</span>`;
+                }).join('');
+            } else {
+                // Normal display with highlighted letter
+                wordElement.innerHTML = letters.map((letter, index) => {
+                    return `<span class="letter ${index === currentLetterIndex ? 'highlighted' : ''}">${letter}</span>`;
+                }).join('');
             }
-            
-            // Calculate progressive horizontal scale based on gapProgress (0.1 to 1.0 scale)
-            const minScale = 0.1;
-            const maxScale = 1.0;
-            const currentScale = minScale + (maxScale - minScale) * gapProgress;
-            const progressiveTransform = `scaleX(${currentScale})`;
-            
-            const letters = displayText.split('');
-            wordElement.innerHTML = letters.map((letter, index) => {
-                if (spacesAdded && ((index >= currentLetterIndex && index < currentLetterIndex + 2) || 
-                                   (index >= currentLetterIndex + 3 && index < currentLetterIndex + 5))) {
-                    // Make the invisible sequences with progressive horizontal scaling
-                    return `<span class="invisible-letter" style="transform: ${progressiveTransform};">${letter}</span>`;
-                } else {
-                    return `<span class="letter ${index === adjustedIndex ? 'highlighted' : ''}">${letter}</span>`;
-                }
-            }).join('');
         }
 
         function addSpacesAroundLetter() {
