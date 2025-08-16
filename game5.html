@@ -41,7 +41,7 @@
             width: 100%;
             max-width: 800px;
             display: flex;
-            align-items: center;
+            align-items: top;
             justify-content: center;
             min-height: 200px;
         }
@@ -55,13 +55,58 @@
             direction: rtl;
             unicode-bidi: bidi-override;
             line-height: 1;
-            transform: translateY(-10%);
+            transform: translateY(-20%);
         }
         
         .invisible-letter {
             color: white;
             transition: transform 0.5s ease;
             display: inline-block;
+        }
+        
+        .completion-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(52, 152, 219, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .completion-number {
+            font-size: 40vw;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f39c12;
+            animation: confetti-fall 3s linear infinite;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
         }
 
         .letter {
@@ -144,8 +189,9 @@
         /* Mobile landscape specific adjustments */
         @media screen and (orientation: landscape) and (max-height: 500px) {
             .arabic-word {
-                font-size: 15vh;
+                font-size: 20vh;
                 letter-spacing: 1vh;
+                transform: translateY(0);
             }
             
             
@@ -194,17 +240,21 @@
         <div class="arabic-word" id="arabicWord"></div>
     </div>
     
+    <div id="wordCounter" style="position: absolute; top: 20px; right: 20px; color: #d0d0d0; font-size: 1.5rem; font-family: Arial, sans-serif;"></div>
+    
     <div class="controls">
-        <button class="nav-button triangle-right" id="prevBtn" onclick="prevLetter()"></button>
-        <div class="rectangle" onclick="addSpacesAroundLetter()"></div>
-        <button class="nav-button triangle-left" id="nextBtn" onclick="nextLetter()"></button>
+        <button class="nav-button triangle-right" id="prevBtn"></button>
+        <div class="rectangle" id="rectangleBtn"></div>
+        <button class="nav-button triangle-left" id="nextBtn"></button>
+    </div>
+    
+    <div class="completion-screen" id="completionScreen">
+        <div class="completion-number">10</div>
     </div>
 
     <script>
         // Array of 3-5 letter Quranic words without harakat
         const quranicWords = [
-            'الله',  // Allah
-            'رب',    // Rabb (Lord)
             'عبد',   // Abd (servant)
             'كتب',   // Kutub (books)
             'نور',   // Nur (light)
@@ -212,17 +262,7 @@
             'علم',   // Ilm (knowledge)
             'صبر',   // Sabr (patience)
             'شكر',   // Shukr (gratitude)
-            'حمد',   // Hamd (praise)
-            'فضل',   // Fadl (grace)
-            'رحم',   // Rahma (mercy)
-            'هدى',   // Huda (guidance)
-            'خير',   // Khayr (good)
-            'بركة',  // Baraka (blessing)
-            'توبة',  // Tawba (repentance)
-            'صلاة',  // Salah (prayer)
-            'زكاة',  // Zakah (charity)
-            'حج',    // Hajj (pilgrimage)
-            'صوم'    // Sawm (fasting)
+            'حمد'    // Hamd (praise)
         ];
 
         let currentWordIndex = 0;
@@ -230,6 +270,7 @@
         let currentWord = '';
         let spacesAdded = false;
         let gapProgress = 0; // 0 to 1, controls the gap size
+        let shuffledWords = []; // Randomized order of words
 
         // Mapping Arabic letters to replacement letters for invisible duplicates
         // Letters that connect to next letter → ل (laam)
@@ -251,14 +292,32 @@
         function getReplacementLetter(letter) {
             return letterReplacements[letter] || 'ل'; // Default to laam for unknown letters
         }
+        
+        // Shuffle array function
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
 
         function initializeWord() {
-            currentWord = quranicWords[currentWordIndex];
+            currentWord = shuffledWords[currentWordIndex];
             currentLetterIndex = 0;
             spacesAdded = false;
             gapProgress = 0;
             displayWord();
             updateButtons();
+            updateCounter();
+        }
+        
+        function updateCounter() {
+            const counter = document.getElementById('wordCounter');
+            if (counter) {
+                counter.textContent = `${currentWordIndex + 1}/${shuffledWords.length}`;
+            }
         }
 
         function displayWord() {
@@ -296,10 +355,8 @@
                 gapProgress = 0;
                 growGap();
             } else {
-                // Turn off spacing mode
-                spacesAdded = false;
-                gapProgress = 0;
-                displayWord();
+                // Start shrinking the gap
+                shrinkGap();
             }
         }
         
@@ -309,6 +366,21 @@
                 if (gapProgress > 1) gapProgress = 1;
                 displayWord();
                 requestAnimationFrame(growGap); // Continue growing until complete
+            }
+        }
+        
+        function shrinkGap() {
+            if (spacesAdded && gapProgress > 0) {
+                gapProgress -= 0.05; // Decrease by 5% each step
+                if (gapProgress < 0) gapProgress = 0;
+                displayWord();
+                if (gapProgress > 0) {
+                    requestAnimationFrame(shrinkGap); // Continue shrinking
+                } else {
+                    // Finished shrinking, turn off spacing mode
+                    spacesAdded = false;
+                    displayWord();
+                }
             }
         }
 
@@ -331,7 +403,12 @@
                 currentLetterIndex++;
             } else {
                 // Move to next word and reset to first letter
-                currentWordIndex = (currentWordIndex + 1) % quranicWords.length;
+                currentWordIndex = (currentWordIndex + 1) % shuffledWords.length;
+                if (currentWordIndex === 0) {
+                    // Completed all words, show completion screen
+                    showCompletionScreen();
+                    return;
+                }
                 initializeWord();
                 return;
             }
@@ -349,8 +426,70 @@
             }
         }
 
+        function showCompletionScreen() {
+            const completionScreen = document.getElementById('completionScreen');
+            completionScreen.style.display = 'flex';
+            
+            // Create confetti
+            for (let i = 0; i < 50; i++) {
+                createConfetti();
+            }
+            
+            // Hide completion screen after 5 seconds and restart
+            setTimeout(() => {
+                completionScreen.style.display = 'none';
+                // Clear confetti
+                document.querySelectorAll('.confetti').forEach(confetti => confetti.remove());
+                // Restart the game
+                currentWordIndex = 0;
+                shuffledWords = shuffleArray(quranicWords);
+                initializeWord();
+            }, 5000);
+        }
+        
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.backgroundColor = ['#f39c12', '#e74c3c', '#9b59b6', '#3498db', '#2ecc71'][Math.floor(Math.random() * 5)];
+            confetti.style.animationDelay = Math.random() * 3 + 's';
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            document.getElementById('completionScreen').appendChild(confetti);
+        }
+        
+        // Add event listeners to prevent double-triggering on mobile
+        function addEventListeners() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const rectangleBtn = document.getElementById('rectangleBtn');
+            
+            // Prevent both touch and click events from firing
+            function handleEvent(element, callback) {
+                let touchHandled = false;
+                
+                element.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    touchHandled = true;
+                    callback();
+                    setTimeout(() => { touchHandled = false; }, 300);
+                });
+                
+                element.addEventListener('click', (e) => {
+                    if (!touchHandled) {
+                        callback();
+                    }
+                });
+            }
+            
+            handleEvent(prevBtn, prevLetter);
+            handleEvent(nextBtn, nextLetter);
+            handleEvent(rectangleBtn, addSpacesAroundLetter);
+        }
+        
         // Initialize the app
+        shuffledWords = shuffleArray(quranicWords);
         initializeWord();
+        addEventListeners();
     </script>
 </body>
 </html>
