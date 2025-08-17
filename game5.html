@@ -50,12 +50,15 @@
             font-family: 'Amiri Quran', 'Scheherazade New', serif;
             font-size: 12vw;
             font-weight: 400;
-            letter-spacing: 0.5vw;
+            letter-spacing: 0;
             margin: 0;
             direction: rtl;
             unicode-bidi: bidi-override;
             line-height: 1;
             transform: translateY(-20%);
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            font-feature-settings: "liga" 1;
         }
         
         .invisible-letter {
@@ -190,7 +193,7 @@
         @media screen and (orientation: landscape) and (max-height: 500px) {
             .arabic-word {
                 font-size: 20vh;
-                letter-spacing: 1vh;
+                letter-spacing: 0;
                 transform: translateY(0);
             }
             
@@ -229,7 +232,7 @@
         @media screen and (min-width: 1200px) {
             .arabic-word {
                 font-size: 8rem;
-                letter-spacing: 0.5rem;
+                letter-spacing: 0;
             }
             
         }
@@ -533,6 +536,23 @@
             handleEvent(nextBtn, nextLetter);
             handleEvent(rectangleBtn, addSpacesAroundLetter);
         }
+        
+        // Add keyboard event listeners
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                nextLetter();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                const prevBtn = document.getElementById('prevBtn');
+                if (!prevBtn.classList.contains('hidden')) {
+                    prevLetter();
+                }
+            } else if (e.key === '0') {
+                e.preventDefault();
+                showCompletionScreen();
+            }
+        });
         
         // Initialize the app
         quranicWords = selectRandomWords();
