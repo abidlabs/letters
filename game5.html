@@ -254,16 +254,73 @@
 
     <script>
         // Array of 3-5 letter Quranic words without harakat
-        const quranicWords = [
+        const allQuranicWords = [
+            // 3-letter words
             'عبد',   // Abd (servant)
-            'كتب',   // Kutub (books)
-            'نور',   // Nur (light)
-            'حق',    // Haqq (truth)
             'علم',   // Ilm (knowledge)
             'صبر',   // Sabr (patience)
             'شكر',   // Shukr (gratitude)
-            'حمد'    // Hamd (praise)
+            'حمد',   // Hamd (praise)
+            'نور',   // Nur (light)
+            'خير',   // Khayr (good)
+            'سبع',   // Seven
+            'مال',   // Wealth
+            'أهل',   // People
+            'دين',   // Religion
+            'جنة',   // Paradise
+            'نار',   // Fire
+            'قلب',   // Heart
+            'عين',   // Eye
+            'يوم',   // Day
+            'ليل',   // Night
+            
+            // 4-letter words
+            'كتاب',  // Book
+            'رسول',  // Messenger
+            'ملك',   // King/Angel
+            'عبادة', // Worship
+            'صلاة',  // Prayer
+            'زكاة',  // Charity
+            'صوم',   // Fasting
+            'حج',    // Pilgrimage
+            'توبة',  // Repentance
+            'مغفرة', // Forgiveness
+            'رحمة',  // Mercy
+            'عدل',   // Justice
+            'حكمة',  // Wisdom
+            'فضل',   // Grace
+            'بركة',  // Blessing
+            'هداية', // Guidance
+            'أمان',  // Safety
+            'سلام',  // Peace
+            'شهر',   // Month
+            'عام',   // Year
+            
+            // 5-letter words
+            'العالم', // The World
+            'المؤمن', // The Believer
+            'القرآن', // The Quran
+            'الإسلام',// Islam
+            'الصبر',  // Patience
+            'الحمد',  // Praise
+            'العلم',  // Knowledge
+            'الخير',  // Good
+            'الحق',   // Truth
+            'الدين',  // Religion
+            'الجنة',  // Paradise
+            'النار',  // Fire
+            'القلب',  // Heart
+            'العين',  // Eye
+            'اليوم',  // Day
+            'الليل',  // Night
+            'الصلاة', // Prayer
+            'الزكاة', // Charity
+            'التوبة', // Repentance
+            'الرحمة'  // Mercy
         ];
+        
+        // Selected words for current session
+        let quranicWords = [];
 
         let currentWordIndex = 0;
         let currentLetterIndex = 0;
@@ -301,6 +358,12 @@
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
             return shuffled;
+        }
+        
+        // Select random subset of words for this session
+        function selectRandomWords() {
+            const shuffled = shuffleArray(allQuranicWords);
+            return shuffled.slice(0, 10);
         }
 
         function initializeWord() {
@@ -440,8 +503,9 @@
                 completionScreen.style.display = 'none';
                 // Clear confetti
                 document.querySelectorAll('.confetti').forEach(confetti => confetti.remove());
-                // Restart the game
+                // Restart the game with new random words
                 currentWordIndex = 0;
+                quranicWords = selectRandomWords();
                 shuffledWords = shuffleArray(quranicWords);
                 initializeWord();
             }, 5000);
@@ -487,6 +551,7 @@
         }
         
         // Initialize the app
+        quranicWords = selectRandomWords();
         shuffledWords = shuffleArray(quranicWords);
         initializeWord();
         addEventListeners();
