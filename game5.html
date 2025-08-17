@@ -363,6 +363,15 @@
             height: 100%;
             fill: #666;
         }
+        
+        /* Smiley emoji animation */
+        .smiley-emoji {
+            position: fixed;
+            left: 20px;
+            font-size: calc(100vh / 12); /* Size adjusted so 10 emojis fill the screen height */
+            z-index: 500;
+            line-height: 1;
+        }
     </style>
 </head>
 <body>
@@ -457,6 +466,7 @@
         let spacesAdded = false;
         let gapProgress = 0; // 0 to 1, controls the gap size
         let shuffledWords = []; // Randomized order of words
+        let completedWords = 0; // Track number of completed words for emoji stacking
 
         // Mapping Arabic letters to replacement letters for invisible duplicates
         // Letters that connect to next letter → ل (laam)
@@ -597,11 +607,17 @@
             if (currentLetterIndex < currentWord.length - 1) {
                 currentLetterIndex++;
             } else {
+                // Word completed! Add a smiley emoji
+                addSmileyEmoji();
+                completedWords++;
+                
                 // Move to next word and reset to no letter selected
                 currentWordIndex = (currentWordIndex + 1) % shuffledWords.length;
                 if (currentWordIndex === 0) {
-                    // Completed all words, show completion screen
-                    showCompletionScreen();
+                    // Completed all words, wait for last emoji to settle then show completion screen
+                    setTimeout(() => {
+                        showCompletionScreen();
+                    }, 1200);
                     return;
                 }
                 initializeWord();
@@ -633,8 +649,11 @@
             // Hide completion screen after 5 seconds and restart
             setTimeout(() => {
                 completionScreen.style.display = 'none';
-                // Clear confetti
+                // Clear confetti and emojis
                 document.querySelectorAll('.confetti').forEach(confetti => confetti.remove());
+                document.querySelectorAll('.smiley-emoji').forEach(emoji => emoji.remove());
+                // Reset completed words counter
+                completedWords = 0;
                 // Restart the game with new random words
                 currentWordIndex = 0;
                 quranicWords = selectRandomWords();
@@ -651,6 +670,42 @@
             confetti.style.animationDelay = Math.random() * 3 + 's';
             confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
             document.getElementById('completionScreen').appendChild(confetti);
+        }
+        
+        function addSmileyEmoji() {
+            // Fun emojis that kids would enjoy
+            const emojis = [
+                '😊', '🐱', '❤️', '⭐', '🎈', 
+                '🦄', '🌈', '🍎', '🚀', '🦋',
+                '🐶', '🎨', '🌻', '🐰', '🍭',
+                '🏀', '🎵', '🦁', '🌟', '🎁'
+            ];
+            
+            const emoji = document.createElement('div');
+            emoji.className = 'smiley-emoji';
+            // Pick a random emoji from the list
+            emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            
+            // Calculate the final position based on how many emojis are already there
+            const emojiHeight = window.innerHeight / 10; // Each emoji takes 1/10th of screen height
+            const finalBottom = completedWords * emojiHeight;
+            
+            // Start from above the screen using bottom positioning
+            emoji.style.bottom = `${window.innerHeight + 100}px`;
+            emoji.style.transform = 'rotate(0deg)';
+            emoji.style.transition = 'none';
+            
+            document.body.appendChild(emoji);
+            
+            // Force reflow
+            emoji.offsetHeight;
+            
+            // Animate to final position
+            setTimeout(() => {
+                emoji.style.transition = 'all 1s ease-in';
+                emoji.style.bottom = `${finalBottom}px`;
+                emoji.style.transform = 'rotate(360deg)';
+            }, 10);
         }
         
         // Add event listeners to prevent double-triggering on mobile
