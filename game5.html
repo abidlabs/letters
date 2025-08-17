@@ -497,7 +497,7 @@
 
         function initializeWord() {
             currentWord = shuffledWords[currentWordIndex];
-            currentLetterIndex = 0;
+            currentLetterIndex = -1; // Start with no letter selected
             spacesAdded = false;
             gapProgress = 0;
             displayWord();
@@ -516,7 +516,7 @@
             const wordElement = document.getElementById('arabicWord');
             const letters = currentWord.split('');
             
-            if (spacesAdded) {
+            if (spacesAdded && currentLetterIndex >= 0) {
                 // Calculate progressive letter spacing based on gapProgress
                 const maxSpacing = 3; // Maximum letter spacing in vw (increased from 2 to 3 for 1.5x)
                 const currentSpacing = maxSpacing * gapProgress;
@@ -533,7 +533,7 @@
                     return `<span class="letter ${index === currentLetterIndex ? 'highlighted' : ''}" style="${extraSpacing}">${letter}</span>`;
                 }).join('');
             } else {
-                // Normal display with highlighted letter
+                // Normal display with highlighted letter (or no highlight if currentLetterIndex is -1)
                 wordElement.innerHTML = letters.map((letter, index) => {
                     return `<span class="letter ${index === currentLetterIndex ? 'highlighted' : ''}">${letter}</span>`;
                 }).join('');
@@ -541,6 +541,9 @@
         }
 
         function addSpacesAroundLetter() {
+            // Only work if a letter is selected
+            if (currentLetterIndex < 0) return;
+            
             if (!spacesAdded) {
                 // Turn on spacing mode and start growing the gap
                 spacesAdded = true;
@@ -581,7 +584,7 @@
             const nextBtn = document.getElementById('nextBtn');
             
             // Hide/show previous button based on current letter position using visibility to prevent layout shift
-            if (currentLetterIndex === 0) {
+            if (currentLetterIndex <= -1) {
                 prevBtn.classList.add('hidden');
             } else {
                 prevBtn.classList.remove('hidden');
@@ -594,7 +597,7 @@
             if (currentLetterIndex < currentWord.length - 1) {
                 currentLetterIndex++;
             } else {
-                // Move to next word and reset to first letter
+                // Move to next word and reset to no letter selected
                 currentWordIndex = (currentWordIndex + 1) % shuffledWords.length;
                 if (currentWordIndex === 0) {
                     // Completed all words, show completion screen
@@ -611,7 +614,7 @@
         function prevLetter() {
             spacesAdded = false; // Reset spaces when navigating
             gapProgress = 0;
-            if (currentLetterIndex > 0) {
+            if (currentLetterIndex > -1) {
                 currentLetterIndex--;
                 displayWord();
                 updateButtons();
