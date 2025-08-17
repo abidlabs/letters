@@ -389,11 +389,10 @@
             'عين',   // Eye
             'يوم',   // Day
             'ليل',   // Night
-            'كتاب',  // Book
             'رسول',  // Messenger
             'ملك',   // King/Angel
             'عبادة', // Worship
-            'صلاة',  // Prayer
+            'صلاة',   // Prayer
             'زكاة',  // Charity
             'صوم',   // Fasting
             'توبة',  // Repentance
@@ -411,7 +410,6 @@
             'الصبر',  // Patience
             'الحمد',  // Praise
             'العلم',  // Knowledge
-            'الخير',  // Good
             'الحق',   // Truth
             'الدين',  // Religion
             'الجنة',  // Paradise
@@ -491,7 +489,7 @@
             
             if (spacesAdded) {
                 // Calculate progressive letter spacing based on gapProgress
-                const maxSpacing = 2; // Maximum letter spacing in vw
+                const maxSpacing = 3; // Maximum letter spacing in vw (increased from 2 to 3 for 1.5x)
                 const currentSpacing = maxSpacing * gapProgress;
                 
                 // Create spans with special spacing around highlighted letter
@@ -663,6 +661,9 @@
                 if (!prevBtn.classList.contains('hidden')) {
                     prevLetter();
                 }
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                addSpacesAroundLetter();
             } else if (e.key === '0') {
                 e.preventDefault();
                 showCompletionScreen();
