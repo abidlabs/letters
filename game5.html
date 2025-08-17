@@ -44,6 +44,7 @@
             align-items: top;
             justify-content: center;
             min-height: 200px;
+            position: relative;
         }
 
         .arabic-word {
@@ -59,6 +60,109 @@
             -webkit-font-smoothing: antialiased;
             text-rendering: optimizeLegibility;
             font-feature-settings: "liga" 1;
+        }
+        
+        /* Browser warning popup */
+        .browser-warning {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            max-width: 400px;
+            text-align: center;
+            display: none;
+            direction: ltr;
+        }
+        
+        .browser-warning.show {
+            display: block;
+        }
+        
+        .browser-warning h2 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        .browser-warning p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .browser-warning-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .browser-warning button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .browser-warning .continue-btn {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .browser-warning .continue-btn:hover {
+            background: #d0d0d0;
+        }
+        
+        .browser-warning .close-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        
+        .browser-warning .close-icon:hover {
+            opacity: 1;
+        }
+        
+        .browser-warning .close-icon::before,
+        .browser-warning .close-icon::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 2px;
+            background: #999;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+        
+        .browser-warning .close-icon::after {
+            transform: translate(-50%, -50%) rotate(-45deg);
+        }
+        
+        .browser-warning-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1999;
+            display: none;
+        }
+        
+        .browser-warning-overlay.show {
+            display: block;
         }
         
         .invisible-letter {
@@ -253,6 +357,17 @@
     
     <div class="completion-screen" id="completionScreen">
         <div class="completion-number">10</div>
+    </div>
+    
+    <div class="browser-warning-overlay" id="browserWarningOverlay"></div>
+    <div class="browser-warning" id="browserWarning">
+        <div class="close-icon" id="closeBrowserWarning"></div>
+        <h2>Browser Notice</h2>
+        <p>For the best experience with Arabic letters, please use Chrome or Firefox on a desktop computer.</p>
+        <p style="font-size: 14px; color: #999;">Arabic letters may appear disconnected in Safari and mobile browsers.</p>
+        <div class="browser-warning-buttons">
+            <button class="continue-btn" id="continueBrowserWarning">Continue Anyway</button>
+        </div>
     </div>
 
     <script>
@@ -554,11 +669,41 @@
             }
         });
         
+        // Check browser and show warning if needed
+        function checkBrowser() {
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            if (isSafari || isMobile) {
+                // Show browser warning
+                document.getElementById('browserWarning').classList.add('show');
+                document.getElementById('browserWarningOverlay').classList.add('show');
+            }
+        }
+        
+        // Add event listeners for browser warning
+        function setupBrowserWarning() {
+            const closeIcon = document.getElementById('closeBrowserWarning');
+            const continueBtn = document.getElementById('continueBrowserWarning');
+            const overlay = document.getElementById('browserWarningOverlay');
+            
+            function closeBrowserWarning() {
+                document.getElementById('browserWarning').classList.remove('show');
+                document.getElementById('browserWarningOverlay').classList.remove('show');
+            }
+            
+            closeIcon.addEventListener('click', closeBrowserWarning);
+            continueBtn.addEventListener('click', closeBrowserWarning);
+            overlay.addEventListener('click', closeBrowserWarning);
+        }
+        
         // Initialize the app
         quranicWords = selectRandomWords();
         shuffledWords = shuffleArray(quranicWords);
         initializeWord();
         addEventListeners();
+        setupBrowserWarning();
+        checkBrowser();
     </script>
 </body>
 </html>
